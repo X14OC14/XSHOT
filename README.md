@@ -1,4 +1,4 @@
-# 📷 XSHOT
+# 📷 XSHOT - v1.2.0
 
 > A Termux tool to automatically beautify screenshots using ImageMagick.
 
