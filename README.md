@@ -12,7 +12,7 @@ cd XSHOT
 bash install.sh
 ```
 
-Automatically installs: `imagemagick`, `inotify-tools`, `bc`, and JetBrains Mono Nerd Font.
+Automatically installs: `imagemagick`, `inotify-tools`, `bc`, and JetBrains Mono Nerd Font. Also copies `topo.png` to `/sdcard/topo.png` for use with the `-t` flag.
 
 ---
 
@@ -29,7 +29,7 @@ source ~/.bashrc
 
 ## Adjust Screenshot Path
 
-The default path in `xshot.sh` is `/sdcard/DCIM/screenshots`. This varies by device — update it to match yours:
+The default path in `xshot.sh` is `/sdcard/Pictures/Screenshot`. This varies by device — update it to match yours:
 
 ```bash
 screenshots_path="/sdcard/Pictures/Screenshot"   # adjust as needed
@@ -64,17 +64,22 @@ xshot [mode] [theme] [optional]
 |-------|-------------|
 | `-l` | Light theme |
 | `-d` | Dark theme |
+| `-g` | Gradient theme — diagonal two-color background |
 
 | Optional | Description |
 |----------|-------------|
 | `-!` | Skip footer watermark |
+| `-t` | Overlay topo pattern on background |
 
 **Examples:**
 
 ```bash
 xshot -a -d          # autoshot, dark theme
 xshot -a -l          # autoshot, light theme
+xshot -a -g          # autoshot, gradient theme
 xshot -a -d -!       # autoshot, dark, no watermark
+xshot -a -d -t       # autoshot, dark + topo overlay
+xshot -a -g -t       # autoshot, gradient + topo overlay
 xshot -m -d          # manual mode, dark theme
 xshot -wm            # timestamp mode (camera photos)
 ```
@@ -83,7 +88,7 @@ xshot -wm            # timestamp mode (camera photos)
 
 ## Customization
 
-All configuration is at the top of `xshot.sh`.
+All configuration is at the top of `xshot.sh` under the `CONFIG` section.
 
 ### Watermark Text
 
@@ -128,6 +133,16 @@ hex_color=(
   "#e6e6e6"  # [6] date color in -wm
   "#38d13e"  # [7] green
 )
+```
+
+### Gradient
+
+Colors for the gradient theme (`-g`). Top-left to bottom-right:
+
+```bash
+grad_start="#5a1a1a"  # top-left color
+grad_end="#050505"    # bottom-right color
+grad_blur="0x20"      # blur intensity (higher = softer)
 ```
 
 ### Border & Shadow
