@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────
 #  xshot — screenshot beautifier for Termux
-#  coded by Mafy | v1.2.0 | 22/05/2026
+#  coded by Mafy | v1.2.1 | 22/05/2026
 # ─────────────────────────────────────────
 
 # ═════════════════════════════════════════
@@ -236,7 +236,7 @@ program_info() {
   echo -e "
 \033[38;5;253m  ────────────────────────────────────────\033[0m
   \033[38;5;240mowner      \033[38;5;253m│\033[0m \033[38;5;111mMafy\033[0m
-  \033[38;5;240mversion    \033[38;5;253m│\033[0m \033[38;5;183mv1.2.0\033[0m
+  \033[38;5;240mversion    \033[38;5;253m│\033[0m \033[38;5;183mv1.2.1\033[0m
   \033[38;5;240mbuilt      \033[38;5;253m│\033[0m 22/05/2026
   \033[38;5;240mplatform   \033[38;5;253m│\033[0m Termux + ImageMagick
 \033[38;5;253m  ────────────────────────────────────────\033[0m
@@ -430,22 +430,53 @@ manual() {
   clear
   header
   read -p "   $(prompt)" file_name
-  echo -e "   $(log)${b}find file ${y}${file_name}${b} in path ${y}/sdcard"
-  cd /sdcard
-  if [[ $? -eq 0 ]]; then
-    result=$(find -name "${file_name}" | sed 's .\{2\}  ')
-    if [[ ${result} = "" ]]; then
+
+  # Manual mode is safe-output only:
+  # raw input stays untouched, xshot result is written to *_xshot.*
+  if [[ "$file_name" == /* ]]; then
+    input_file="$file_name"
+  else
+    echo -e "   $(log)${b}find file ${y}${file_name}${b} in path ${y}/sdcard"
+    cd /sdcard || {
+      echo -e "   $(log)${r}permission denied, please run ${y}termux-setup-storage"
+      exit 1
+    }
+    result=$(find -name "${file_name}" | sed 's .\{2\}  ' | head -n 1)
+    if [[ -z "$result" ]]; then
       echo -e "   $(log)${r}file not found, please check again!"
       exit 1
     fi
-    echo -e "   $(log)${b}found file in ${y}/sdcard/${result}"
-    file="/sdcard/${result}"
-    echo -e "   $(log)${b}converting file ..."
-    titlebar
-    ss
-  else
-    echo -e "   $(log)${r}permission denied, please run ${y}termux-setup-storage"
+    input_file="/sdcard/${result}"
   fi
+
+  if [[ ! -f "$input_file" ]]; then
+    echo -e "   $(log)${r}file not found: ${y}${input_file}"
+    exit 1
+  fi
+
+  if [[ "$input_file" == *_xshot.* ]]; then
+    echo -e "   $(log)${r}this looks like an xshot result already, use the raw file instead"
+    exit 1
+  fi
+
+  base="${input_file%.*}"
+  ext="${input_file##*.}"
+  out_file="${base}_xshot.${ext}"
+  n=1
+  while [[ -e "$out_file" ]]; do
+    out_file="${base}_xshot_${n}.${ext}"
+    n=$((n + 1))
+  done
+
+  echo -e "   $(log)${b}found file in ${y}${input_file}"
+  echo -e "   $(log)${b}output file ${y}${out_file}"
+
+  cp "$input_file" "$out_file"
+  file="$out_file"
+
+  echo -e "   $(log)${b}converting file ..."
+  titlebar
+  ss
 }
 
 main() {
