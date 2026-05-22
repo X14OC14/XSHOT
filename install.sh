@@ -1,10 +1,12 @@
 #!/bin/bash
 # ─────────────────────────────────────────
 #  xshot — installer
-#  coded by Mafy | v1.0.0 | 08/05/2026
+#  coded by Mafy | v1.2.0 | 22/05/2026
 # ─────────────────────────────────────────
 
-# ── Terminal Colors ───────────────────────
+# ═════════════════════════════════════════
+#  TERMINAL COLORS  (jangan diubah)
+# ═════════════════════════════════════════
 o='\033[0m'
 bl='\033[38;5;111m'   # soft blue
 pk='\033[38;5;183m'   # soft pink-violet
@@ -14,12 +16,17 @@ g='\033[38;5;114m'    # soft green
 r='\033[38;5;210m'    # soft red
 y='\033[38;5;222m'    # soft yellow
 
+# ═════════════════════════════════════════
+#  CONFIG
+# ═════════════════════════════════════════
+
 # ── Paths ─────────────────────────────────
 font_dir="/data/data/com.termux/files/home/.fonts"
 local_dir="/data/data/com.termux/files/home/.local"
 bin="${local_dir}/bin"
-sdcard="/data/data/com.termux/files/home/storage/"
+sdcard="/data/data/com.termux/files/home/storage"
 dir_package="/data/data/com.termux/files/usr/bin"
+topo_dest="/sdcard/topo.png"
 
 # ── Packages ──────────────────────────────
 package=(
@@ -53,18 +60,29 @@ already() {
 #  UI
 # ─────────────────────────────────────────
 
-header() {
-  echo -e "
-${pk}╔══╗─────╔╗───╔╗╔╗
-╚╣╠╝────╔╝╚╗──║║║║
-─║║╔═╗╔═╩╗╔╬══╣║║║╔══╦═╗
-─║║║╔╗╣══╣║║╔╗║║║║║║═╣╔╝
-╔╣╠╣║║╠══║╚╣╔╗║╚╣╚╣║═╣║
-╚══╩╝╚╩══╩═╩╝╚╩═╩═╩══╩╝${o}
+print_ascii() {
+  local colors=(148 149 150 151 152 153)
+  local lines=(
+    "██╗███╗░░██╗░██████╗████████╗░█████╗░██╗░░░░░██╗░░░░░"
+    "██║████╗░██║██╔════╝╚══██╔══╝██╔══██╗██║░░░░░██║░░░░░"
+    "██║██╔██╗██║╚█████╗░░░░██║░░░███████║██║░░░░░██║░░░░░"
+    "██║██║╚████║░╚═══██╗░░░██║░░░██╔══██║██║░░░░░██║░░░░░"
+    "██║██║░╚███║██████╔╝░░░██║░░░██║░░██║███████╗███████╗"
+    "╚═╝╚═╝░░╚══╝╚═════╝░░░░╚═╝░░░╚═╝░░╚═╝╚══════╝╚══════╝"
+  )
+  echo ""
+  for (( i=0; i<${#lines[@]}; i++ )); do
+    echo -e "\033[38;5;${colors[$i]}m${lines[$i]}\033[0m"
+  done
+}
 
-${wh}  ────────────────────────────────────────${o}
-  ${dm}screenshot beautifier for Termux  v1.0.0${o}
-${wh}  ────────────────────────────────────────${o}
+header() {
+  clear
+  print_ascii
+  echo -e "
+\033[38;5;253m  ────────────────────────────────────────\033[0m
+  \033[38;5;240mscreenshot beautifier for Termux  v1.2.0\033[0m
+\033[38;5;253m  ────────────────────────────────────────\033[0m
 "
 }
 
@@ -108,6 +126,15 @@ check
 if [[ ! -d ${sdcard} ]]; then
   echo -e "\n$(log)${bl}Setting up storage access${o}"
   termux-setup-storage
+  sleep 3s
+fi
+
+echo -e "\n$(log)${bl}Copying topo.png to /sdcard${o}"
+if [[ -f "$(pwd)/topo.png" ]]; then
+  cp "$(pwd)/topo.png" "${topo_dest}"
+  check
+else
+  echo -e "   $(log)${y}topo.png not found in repo, skipping${o}"
 fi
 
 echo -e "\n$(log)${bl}Setting up ~/.local/bin${o}"
