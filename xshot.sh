@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────
 #  xshot — screenshot beautifier for Termux
-#  coded by Mafy | v1.2.1 | 22/05/2026
+#  coded by Mafy | v1.2.2 | 23/05/2026
 # ─────────────────────────────────────────
 
 # ═════════════════════════════════════════
@@ -59,8 +59,8 @@ camera_backup="${camera_path}/backup"
 screenshots_path="/sdcard/Pictures/Screenshot"
 screenshots_backup="${screenshots_path}/backup"
 manual_backup="/sdcard/DCIM/backup"
-topo_svg="/sdcard/topo.svg"
-topo_png="/sdcard/topo.png"
+pattern_svg="/sdcard/xshot/pattern/topo.svg"
+pattern_png="/sdcard/xshot/pattern/topo.png"
 
 # ═════════════════════════════════════════
 #  TERMINAL COLORS  (jangan diubah)
@@ -80,6 +80,7 @@ y='\033[38;5;222m'    # soft yellow
 
 count=1
 backup="yes"
+use_pattern=false
 
 check_format=(
   "${g}Done"
@@ -137,7 +138,7 @@ log() {
 }
 
 prompt() {
-  echo -e "$(log)${b}Please input file : ${y}"
+  echo -e "$(log)${bl}Please input file : ${y}"
 }
 
 check() {
@@ -158,7 +159,7 @@ backup() {
 next_count() {
   count=$(( ${count} + 1 ))
   echo -e "   ${r}[${y}${count}${r}]"
-  echo -e "   $(log)${b}Waiting new file"
+  echo -e "   $(log)${bl}Waiting new file"
 }
 
 # ─────────────────────────────────────────
@@ -218,14 +219,14 @@ ${wh}  ────────────────────────�
 
   ${dm}optional${o}
   ${wh}│${o} ${dm}-!${o}   no watermark
-  ${wh}│${o} ${dm}-t${o}   overlay topo pattern
+  ${wh}│${o} ${dm}-p${o}   overlay pattern
 
   ${dm}examples${o}
   ${wh}│${o} xshot ${bl}-a ${pk}-d${o}
   ${wh}│${o} xshot ${bl}-a ${pk}-l ${dm}-!${o}
   ${wh}│${o} xshot ${bl}-a ${pk}-g${o}
-  ${wh}│${o} xshot ${bl}-a ${pk}-g ${dm}-t${o}
-  ${wh}│${o} xshot ${bl}-a ${pk}-d ${dm}-t${o}
+  ${wh}│${o} xshot ${bl}-a ${pk}-g ${dm}-p${o}
+  ${wh}│${o} xshot ${bl}-a ${pk}-d ${dm}-p${o}
 ${wh}  ────────────────────────────────────────${o}
 "
 }
@@ -236,8 +237,8 @@ program_info() {
   echo -e "
 \033[38;5;253m  ────────────────────────────────────────\033[0m
   \033[38;5;240mowner      \033[38;5;253m│\033[0m \033[38;5;111mMafy\033[0m
-  \033[38;5;240mversion    \033[38;5;253m│\033[0m \033[38;5;183mv1.2.1\033[0m
-  \033[38;5;240mbuilt      \033[38;5;253m│\033[0m 22/05/2026
+  \033[38;5;240mversion    \033[38;5;253m│\033[0m \033[38;5;183mv1.2.2\033[0m
+  \033[38;5;240mbuilt      \033[38;5;253m│\033[0m 23/05/2026
   \033[38;5;240mplatform   \033[38;5;253m│\033[0m Termux + ImageMagick
 \033[38;5;253m  ────────────────────────────────────────\033[0m
 "
@@ -253,7 +254,7 @@ titlebar() {
   gr="#27C93F"  # green dot
   yl="#FFBD2E"  # yellow dot
   rd="#FF5F56"  # red dot
-  bl="#282C34"  # background
+  tb_bg="#282C34"  # titlebar background
 
   rad=$( echo "0.0025 * ${width_img} * ${height_img} / 100" | bc )
   br=$( echo "${rad} * 5" | bc )
@@ -271,25 +272,13 @@ titlebar() {
     x1=$( echo "${x0} + ${rad}" | bc )
   done
 
-  if [[ "${add_on_img}" == "yes" ]]; then
-    magick "$file" -fill $bl \
-      -background ${titlebar_color} \
-      -gravity north \
-      -chop 0x$br \
-      -splice 0x$br \
-      -draw "fill ${rd} circle ${arr[0,0]},${arr[0,1]} ${arr[0,2]},${arr[0,3]}
-             fill ${yl} circle ${arr[1,0]},${arr[1,1]} ${arr[1,2]},${arr[1,3]}
-             fill ${gr} circle ${arr[2,0]},${arr[2,1]} ${arr[2,2]},${arr[2,3]}" \
-      $file
-  else
-    magick $file -fill $bl \
-      -background ${titlebar_color} \
-      -gravity north -splice 0x$br \
-      -draw "fill ${rd} circle ${arr[0,0]},${arr[0,1]} ${arr[0,2]},${arr[0,3]}
-             fill ${yl} circle ${arr[1,0]},${arr[1,1]} ${arr[1,2]},${arr[1,3]}
-             fill ${gr} circle ${arr[2,0]},${arr[2,1]} ${arr[2,2]},${arr[2,3]}" \
-      $file
-  fi
+  magick $file -fill $tb_bg \
+    -background ${titlebar_color} \
+    -gravity north -splice 0x$br \
+    -draw "fill ${rd} circle ${arr[0,0]},${arr[0,1]} ${arr[0,2]},${arr[0,3]}
+           fill ${yl} circle ${arr[1,0]},${arr[1,1]} ${arr[1,2]},${arr[1,3]}
+           fill ${gr} circle ${arr[2,0]},${arr[2,1]} ${arr[2,2]},${arr[2,3]}" \
+    $file
 }
 
 ss() {
@@ -312,12 +301,12 @@ ss() {
     bg_w=$(( img_w + border_size * 2 ))
     bg_h=$(( img_h + border_size * 2 ))
 
-    if [[ "$use_topo" == true ]]; then
+    if [[ "$use_pattern" == true ]]; then
       magick -size ${bg_w}x${bg_h} \
         -define gradient:angle=225 \
         gradient:"${grad_start}-${grad_end}" \
         -blur ${grad_blur} \
-        \( -size ${bg_w}x${bg_h} tile:"${topo_png}" \) \
+        \( -size ${bg_w}x${bg_h} tile:"${pattern_png}" \) \
         -compose over -composite \
         "$tmp_img" -gravity center -compose over -composite \
         "$file"
@@ -347,10 +336,10 @@ ss() {
     bg_w=$(( img_w + border_size * 2 ))
     bg_h=$(( img_h + border_size * 2 ))
 
-    if [[ "$use_topo" == true ]]; then
-      # canvas border_color + topo, screenshot di tengah
+    if [[ "$use_pattern" == true ]]; then
+      # canvas border_color + pattern, screenshot di tengah
       magick -size ${bg_w}x${bg_h} xc:"${border_color}" \
-        \( -size ${bg_w}x${bg_h} tile:"${topo_png}" \) \
+        \( -size ${bg_w}x${bg_h} tile:"${pattern_png}" \) \
         -compose over -composite \
         "$tmp_img" -gravity center -compose over -composite \
         "$file"
@@ -419,7 +408,7 @@ autoshot() {
   clear
   header
   echo -e "   ${r}[${y}${count}${r}]"
-  echo -e "   $(log)${b}Waiting new file"
+  echo -e "   $(log)${bl}Waiting new file"
   inotifywait -m -e moved_to $path 2> /dev/null | \
     while read filename; do
       main
@@ -436,7 +425,7 @@ manual() {
   if [[ "$file_name" == /* ]]; then
     input_file="$file_name"
   else
-    echo -e "   $(log)${b}find file ${y}${file_name}${b} in path ${y}/sdcard"
+    echo -e "   $(log)${bl}find file ${y}${file_name}${b} in path ${y}/sdcard"
     cd /sdcard || {
       echo -e "   $(log)${r}permission denied, please run ${y}termux-setup-storage"
       exit 1
@@ -468,13 +457,13 @@ manual() {
     n=$((n + 1))
   done
 
-  echo -e "   $(log)${b}found file in ${y}${input_file}"
-  echo -e "   $(log)${b}output file ${y}${out_file}"
+  echo -e "   $(log)${bl}found file in ${y}${input_file}"
+  echo -e "   $(log)${bl}output file ${y}${out_file}"
 
   cp "$input_file" "$out_file"
   file="$out_file"
 
-  echo -e "   $(log)${b}converting file ..."
+  echo -e "   $(log)${bl}converting file ..."
   titlebar
   ss
 }
@@ -486,15 +475,15 @@ main() {
   [[ "$file_name" == .pending* ]] && return
 
   file=${path}/${file_name}
-  echo -e "   $(log)${b}Found file ${y}${file_name}"
+  echo -e "   $(log)${bl}Found file ${y}${file_name}"
 
   if [[ ${run} = "auto" ]]; then
-    [[ $backup = "yes" ]] && { echo -e "   $(log)${b}Backup file"; backup; }
-    echo -e "   $(log)${b}Converting"
+    [[ $backup = "yes" ]] && { echo -e "   $(log)${bl}Backup file"; backup; }
+    echo -e "   $(log)${bl}Converting"
     titlebar
     ss
   elif [[ ${run} = "wm" ]]; then
-    echo -e "   $(log)${b}Converting"
+    echo -e "   $(log)${bl}Converting"
     timeStamp
   fi
 }
@@ -512,7 +501,7 @@ case "$1" in
     path=${screenshots_path}
     path_backup=${screenshots_backup}
     run="auto"
-    [[ "$3" == "-t" ]] && use_topo=true
+    [[ "$3" == "-p" ]] && use_pattern=true
     case "$2" in
       -l) space2="${r}      ║"; light; autoshot ;;
       -d) space2="${r}       ║"; dark;  autoshot ;;
@@ -523,10 +512,10 @@ case "$1" in
 
   -m)
     type="MANUAL SHOT"
-    path=${FILE}
+    path=""
     space1="${r} ║         ║ "
     run="manual"
-    [[ "$3" == "-t" ]] && use_topo=true
+    [[ "$3" == "-p" ]] && use_pattern=true
     case "$2" in
       -l) light; space2="${r}      ║"; manual ;;
       -d) dark;  space2="${r}       ║"; manual ;;
