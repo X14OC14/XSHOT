@@ -151,7 +151,7 @@ fi
 
 echo -e "  ${wh}│${o} ${dm}copying xshot${o}"
 sleep 1s
-cp xshot.sh "${bin}/xshot"
+cp "$(dirname "$0")/xshot.sh" "${bin}/xshot"
 check
 chmod +x "${bin}/xshot"
 check
