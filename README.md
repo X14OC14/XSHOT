@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/xshot.png" width="900">
+<img src="assets/xshot.svg" alt="XSHOT" width="900">
 
 <br>
 
