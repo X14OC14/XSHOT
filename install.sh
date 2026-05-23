@@ -1,7 +1,7 @@
 #!/bin/bash
 # ─────────────────────────────────────────
 #  xshot — installer
-#  coded by Mafy | v1.2.1 | 22/05/2026
+#  coded by Mafy | v1.2.2 | 23/05/2026
 # ─────────────────────────────────────────
 
 # ═════════════════════════════════════════
@@ -26,7 +26,7 @@ local_dir="/data/data/com.termux/files/home/.local"
 bin="${local_dir}/bin"
 sdcard="/data/data/com.termux/files/home/storage"
 dir_package="/data/data/com.termux/files/usr/bin"
-topo_dest="/sdcard/topo.png"
+pattern_dest="/sdcard/xshot/pattern"
 
 # ── Packages ──────────────────────────────
 package=(
@@ -81,7 +81,7 @@ header() {
   print_ascii
   echo -e "
 \033[38;5;253m  ────────────────────────────────────────\033[0m
-  \033[38;5;240mscreenshot beautifier for Termux  v1.2.1\033[0m
+  \033[38;5;240mscreenshot beautifier for Termux  v1.2.2\033[0m
 \033[38;5;253m  ────────────────────────────────────────\033[0m
 "
 }
@@ -120,7 +120,7 @@ else
 fi
 
 echo -e "\n$(log)${bl}Installing fonts${o}"
-cp -rf "$(pwd)/fonts" ~/.fonts
+cp -rf "$(dirname "$0")/fonts/." "${font_dir}/"
 check
 
 if [[ ! -d ${sdcard} ]]; then
@@ -129,12 +129,14 @@ if [[ ! -d ${sdcard} ]]; then
   sleep 3s
 fi
 
-echo -e "\n$(log)${bl}Copying topo.png to /sdcard${o}"
-if [[ -f "$(pwd)/topo.png" ]]; then
-  cp "$(pwd)/topo.png" "${topo_dest}"
+echo -e "\n$(log)${bl}Setting up pattern folder${o}"
+if [[ -d "$(dirname "$0")/pattern" ]]; then
+  mkdir -p "${pattern_dest}"
+  cp -r "$(dirname "$0")/pattern/." "${pattern_dest}/"
+  touch "${pattern_dest}/.nomedia"
   check
 else
-  echo -e "   $(log)${y}topo.png not found in repo, skipping${o}"
+  echo -e "   $(log)${y}pattern folder not found in repo, skipping${o}"
 fi
 
 echo -e "\n$(log)${bl}Setting up ~/.local/bin${o}"
